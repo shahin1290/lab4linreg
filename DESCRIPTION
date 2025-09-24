@@ -1,0 +1,28 @@
+Package: lab4linreg
+Type: Package
+Title: Linear Regression using QR Decomposition
+Version: 0.1.0
+Authors@R: c( 
+  person(
+      "Sergey", "Volchkov",
+      email = "servo519@student.liu.se",
+      role = c("aut", "cre")
+    ),
+    person(
+      "Md Shahin", "patowary",
+      email = "mdpa888@student.liu.se",
+      role = c("aut", "ctb")
+    ))
+Description: Class for performing Linear Regression using QR Decomposition.
+    Includes plotting functionality.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: ggplot2, gridExtra
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+RoxygenNote: 7.3.2
+VignetteBuilder: knitr

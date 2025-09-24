@@ -1,0 +1,26 @@
+---
+title: "linreg-vignette"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{linreg-vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(lab4linreg)
+```
+
+The lab4linreg package performs linear regression using QR decomposition and has a number of useful functions for accessing and plotting the results.
+
+```{r}
+linreg_mod <- linreg$new(formula = Petal.Length ~ Species, data=iris)
+linreg_mod$plot()
+```
