@@ -30,6 +30,7 @@ linreg <- setRefClass("linreg",
     fields = list(
       formula = "formula",
       data = "data.frame",
+      data_name = "character",
       coefficients = "numeric",
       residuals = "matrix",
       fitted.values = "matrix",
@@ -43,6 +44,7 @@ linreg <- setRefClass("linreg",
       initialize = function(formula, data) {
         .self$formula <- formula
         .self$data <- data
+        .self$data_name <- deparse(substitute(data))
 
         # Construct the model matrix X and response vector y
         .self$X <- model.matrix(formula, data)
@@ -68,12 +70,18 @@ linreg <- setRefClass("linreg",
 
       print = function() {
         cat("Call:\n")
-        formula_string <- paste0("linreg(formula = ", deparse(.self$formula), ", data = ", deparse(substitute(.self$data)), ")")
+        formula_string <- paste0("linreg(formula = ", deparse(.self$formula), ", data = ", .self$data_name, ")")
         cat(formula_string, "\n")
         cat("\nCoefficients:\n")
-        coef_names <- names(.self$coefficients)
-        coef_line <- paste(paste0(" ", coef_names, " "), collapse = "")
-        cat(coef_line, "\n")
+        coef_vals <- .self$coefficients
+        names(coef_vals) <- colnames(.self$X)
+        # Use base::print to avoid conflict with RC print method
+        base::print(coef_vals)
+      },
+
+      # use .show because RC objects don't auto-use $print() for display
+      .show = function() {
+        .self$print()
       },
 
       resid = function() {
@@ -170,3 +178,8 @@ linreg <- setRefClass("linreg",
     }
   )
 )
+
+# Add show method for automatic printing
+setMethod("show", "linreg", function(object) {
+  object$print()
+})
