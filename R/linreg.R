@@ -155,7 +155,7 @@ linreg <- setRefClass("linreg",
       p1 <- ggplot2::ggplot(df_res_fit, ggplot2::aes(x = fitted, y = residuals)) +
         ggplot2::geom_point(color = color_1) +
         ggplot2::geom_hline(yintercept = 0, color = color_2, linetype = "dashed") +
-        ggplot2::geom_smooth(method = "loess", se = FALSE, color = color_3) +
+        ggplot2::geom_smooth(formula = y ~ x, method = "loess", se = FALSE, color = color_3) +
         ggplot2::labs(title = paste("Residuals vs Fitted\nFormula:", deparse(.self$formula)),
                       x = "Fitted values",
                       y = "Residuals") +
@@ -167,7 +167,7 @@ linreg <- setRefClass("linreg",
 
       p2 <- ggplot2::ggplot(df_scale_loc, ggplot2::aes(x = fitted, y = sqrt_abs_residuals)) +
         ggplot2::geom_point(color = color_1) +
-        ggplot2::geom_smooth(method = "loess", se = FALSE, color = color_3) +
+        ggplot2::geom_smooth(formula = y ~ x, method = "loess", se = FALSE, color = color_3) +
         ggplot2::labs(title = paste("Scale-Location\nFormula:", deparse(.self$formula)),
                       x = "Fitted values",
                       y = "sqrt(Standardized residuals)") +
