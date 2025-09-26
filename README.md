@@ -2,6 +2,7 @@
 # lab4linreg
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/njmurov-ux/lab3algorithms/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/shahin1290/lab4linreg/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of lab4linreg is to performs linear regression using QR decomposition.
