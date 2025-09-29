@@ -24,3 +24,46 @@ The lab4linreg package performs linear regression using QR decomposition and has
 linreg_mod <- linreg$new(formula = Petal.Length ~ Species, data=iris)
 linreg_mod$plot()
 ```
+
+### print
+print() prints out the coefficients and coefficient names, similar as done by the lm class.
+
+```{r print}
+linreg_mod
+```
+### Resid
+
+restid() returns the vector of residuals.
+
+```{r resid}
+linreg_mod$resid()
+
+```
+### Pred
+
+pred() returns the predicted values
+
+```{r pred}
+
+linreg_mod$pred()
+
+```
+### Coef
+Tcoef() returns the coefficients as a named vector
+
+```{r coef}
+linreg_mod$coef()
+```
+
+
+### Summary
+
+summary() returns a similar printout as printed for lm objects, but you only need to present
+the coefficients with their standard error, t-value and p-value as well as the estimate of ˆσ and the degrees
+of freedom in the model.
+
+```{r Summary}
+
+linreg_mod$summary()
+
+```
