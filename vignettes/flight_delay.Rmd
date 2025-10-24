@@ -1,0 +1,84 @@
+---
+title: "flight_delay"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{flight_delay}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(lab4linreg)
+```
+
+### Introduction
+
+This vignette demonstrates how to use the `ridgereg()` function to predict flight departure delays. We will use the `nycflights13` dataset, which contains information on all 336,776 flights that departed from New York City in 2013[22]. The goal is to build a ridge regression model that predicts the departure delay (`dep_delay`) based on weather conditions and flight details.
+
+### 1. Data Loading and Preparation
+
+First, we load the necessary packages and the `flights` and `weather` datasets from `nycflights13`[12].
+
+```{r}
+# Load required libraries
+library(nycflights13)
+library(dplyr)
+library(tidyr)
+```
+
+The `flights` dataset contains the core information about each flight, and `weather` contains hourly meteorological data for the three NYC airports[22]. We need to join these two datasets to create a single data frame for modeling. The join is performed on `year`, `month`, `day`, `hour`, and `origin` to link each flight to the weather conditions at its departure time and location[23].
+
+```{r}
+# Merge flight and weather data
+flight_weather_data <- inner_join(
+  flights, 
+  weather, 
+  by = c("origin", "year", "month", "day", "hour")
+)
+```
+
+### Feature Selection and Cleaning
+
+The combined dataset has many variables. We will select a subset that we believe may have predictive power for departure delays. We will also remove variables that are either identifiers (`tailnum`), redundant (`sched_dep_time`), or related to the arrival, since we are predicting departure delay (`arr_delay`, `arr_time`).
+
+The selected predictors include:
+*   **Flight details**: `month`, `day`, `dep_time`, `carrier`, `dest`, `distance`.
+*   **Weather conditions**: `temp`, `dewp`, `humid`, `wind_dir`, `wind_speed`, `precip`, `pressure`, `visib`.
+
+Our target variable is `dep_delay`.
+
+```{r}
+# Select relevant columns and our target variable
+selected_data <- flight_weather_data %>%
+  select(
+    dep_delay, month, day, dep_time, carrier, dest, distance, 
+    temp, dewp, humid, wind_dir, wind_speed, precip, pressure, visib
+  )
+
+# Data cleaning: remove rows with missing values (NA)
+# This is crucial as regression models cannot handle NAs.
+cleaned_data <- selected_data %>%
+  na.omit()
+
+# The full dataset is quite large. For this demonstration, we'll scale it down
+# to a random sample of 10,000 observations to ensure the vignette builds quickly.
+if (nrow(cleaned_data) > 10000) {
+  set.seed(42) # for reproducibility
+  final_data <- cleaned_data %>%
+    sample_n(10000)
+} else {
+  final_data <- cleaned_data
+}
+
+# Display the first few rows of the final dataset
+head(final_data)
+```
+
+This completes the first step of preparing the data. The `final_data` data frame is now ready to be used with the `ridgereg` function to build our predictive model. The next steps would involve fitting the model and evaluating its predictions.
