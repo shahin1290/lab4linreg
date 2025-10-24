@@ -20,11 +20,10 @@ library(lab4linreg)
 
 ### Introduction
 
-This vignette demonstrates how to use the `ridgereg()` function to predict flight departure delays. We will use the `nycflights13` dataset, which contains information on all 336,776 flights that departed from New York City in 2013[22]. The goal is to build a ridge regression model that predicts the departure delay (`dep_delay`) based on weather conditions and flight details.
+This vignette demonstrates how to use the `ridgereg()` function to predict flight departure delays. We will use the `nycflights13` dataset, which contains information on all 336,776 flights that departed from New York City in 2013. The goal is to build a ridge regression model that predicts the departure delay (`dep_delay`) based on weather conditions and flight details.
 
-### 1. Data Loading and Preparation
+### Data Loading and Preparation
 
-First, we load the necessary packages and the `flights` and `weather` datasets from `nycflights13`[12].
 
 ```{r}
 # Load required libraries
@@ -33,7 +32,7 @@ library(dplyr)
 library(tidyr)
 ```
 
-The `flights` dataset contains the core information about each flight, and `weather` contains hourly meteorological data for the three NYC airports[22]. We need to join these two datasets to create a single data frame for modeling. The join is performed on `year`, `month`, `day`, `hour`, and `origin` to link each flight to the weather conditions at its departure time and location[23].
+The `flights` dataset contains the core information about each flight, and `weather` contains hourly meteorological data for the three NYC airports. We need to join these two datasets to create a single data frame for modeling. The join is performed on `year`, `month`, `day`, `hour`, and `origin` to link each flight to the weather conditions at its departure time and location.
 
 ```{r}
 # Merge flight and weather data
@@ -55,20 +54,26 @@ The selected predictors include:
 Our target variable is `dep_delay`.
 
 ```{r}
-# Select relevant columns and our target variable
+
+# Feature Selection and Engineering
 selected_data <- flight_weather_data %>%
+  # Select the original predictors plus wind_gust
   select(
     dep_delay, month, day, dep_time, carrier, dest, distance, 
-    temp, dewp, humid, wind_dir, wind_speed, precip, pressure, visib
+    temp, dewp, humid, wind_dir, wind_speed, wind_gust, precip, pressure, visib
+  ) %>%
+  # Create interaction terms
+  mutate(
+    temp_x_humid = temp * humid,
+    wind_x_precip = wind_speed * precip
   )
 
-# Data cleaning: remove rows with missing values (NA)
-# This is crucial as regression models cannot handle NAs.
+# Data cleaning: remove rows with NA values
+# This is especially important now, as wind_gust has many missing values
 cleaned_data <- selected_data %>%
   na.omit()
 
-# The full dataset is quite large. For this demonstration, we'll scale it down
-# to a random sample of 10,000 observations to ensure the vignette builds quickly.
+# Downsample the dataset
 if (nrow(cleaned_data) > 10000) {
   set.seed(42) # for reproducibility
   final_data <- cleaned_data %>%
@@ -77,7 +82,7 @@ if (nrow(cleaned_data) > 10000) {
   final_data <- cleaned_data
 }
 
-# Display the first few rows of the final dataset
+# Display the first few rows to show the new interaction columns
 head(final_data)
 ```
 
