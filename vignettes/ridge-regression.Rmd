@@ -1,0 +1,39 @@
+---
+title: "ridge-regression"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ridge-regression}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(lab4linreg)
+```
+
+```{r}
+data(iris)
+
+# Fit a ridge regression model
+ridge_model <- ridgereg(Sepal.Length ~ Petal.Length + Petal.Width, data = iris, lambda = 0.5)
+
+# 1. Extract coefficients using the coef() method
+coefficients <- coef(ridge_model)
+print(coefficients)
+
+# 2. Predict on new data
+# Create a new data frame with values for prediction
+new_data <- data.frame(Petal.Length = c(5.1, 2.3, 3.4), 
+                       Petal.Width = c(1.8, 0.5, 1.1))
+
+# Get predictions for the new data
+predicted_values <- predict(ridge_model, newdata = new_data)
+print(predicted_values)
+```

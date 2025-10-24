@@ -18,8 +18,8 @@ pak::pak("shahin1290/lab4linreg")
 
 ## Example
 
-This is a basic example which shows you how to use the package based on iris 
-data and all available functions:
+This is a basic example which shows you how to use the package to do 
+on linear regression on iris data and all available functions:
 
 ``` r
 library(lab4linreg)
@@ -32,3 +32,5 @@ linreg_mod$coef()
 linreg_mod$summary()
 ```
 
+See the vignettes for the information on how to use the ridge regression
+function.

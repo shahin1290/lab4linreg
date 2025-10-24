@@ -1,6 +1,6 @@
 Package: lab4linreg
 Type: Package
-Title: Linear Regression using QR Decomposition
+Title: Linear and Ridge Regression using QR Decomposition
 Version: 0.1.0
 Authors@R: c( 
   person(
@@ -13,12 +13,13 @@ Authors@R: c(
       email = "mdpa888@student.liu.se",
       role = c("aut", "ctb")
     ))
-Description: Class for performing Linear Regression using QR Decomposition.
+Description: Classes for performing Linear Regression and Ridge Regression 
+    using QR Decomposition.
     Includes plotting functionality.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Imports: ggplot2, gridExtra
+Imports: ggplot2, gridExtra, MASS
 Suggests: 
     knitr,
     rmarkdown,
