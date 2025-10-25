@@ -29,7 +29,8 @@ Suggests:
     testthat (>= 3.0.0), 
     nycflights13,
     dplyr,
-    tidyr
+    tidyr,
+    caret
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr

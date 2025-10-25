@@ -30,6 +30,7 @@ This vignette demonstrates how to use the `ridgereg()` function to predict fligh
 library(nycflights13)
 library(dplyr)
 library(tidyr)
+library(caret)
 ```
 
 The `flights` dataset contains the core information about each flight, and `weather` contains hourly meteorological data for the three NYC airports. We need to join these two datasets to create a single data frame for modeling. The join is performed on `year`, `month`, `day`, `hour`, and `origin` to link each flight to the weather conditions at its departure time and location.
@@ -86,4 +87,94 @@ if (nrow(cleaned_data) > 10000) {
 head(final_data)
 ```
 
-This completes the first step of preparing the data. The `final_data` data frame is now ready to be used with the `ridgereg` function to build our predictive model. The next steps would involve fitting the model and evaluating its predictions.
+### Devide the flight Data into test, train, and validation
+
+We devide the flight data set into test(5%), train(80%), and validation(15%).
+
+```{r}
+# Setting the seed for reproducibility
+set.seed(2025)
+
+# Split into 80% training, 15% validation, and 5% test sets
+train_index <- createDataPartition(final_data$dep_delay, p = 0.8, list = FALSE)
+train_data <- final_data[train_index, ]
+temp_data <- final_data[-train_index, ]
+
+val_index <- createDataPartition(temp_data$dep_delay, p = 0.75, list = FALSE)
+validation_data <- temp_data[val_index, ]
+test_data <- temp_data[-val_index, ]
+
+# Display dataset sizes
+cat("Training set size:", nrow(train_data), 
+    "| Validation set size:", nrow(validation_data), 
+    "| Test set size:", nrow(test_data), "\n")
+```
+
+### Train Ridge Regression Models and Evaluate RMSE on Validation Set
+
+We train ridge regression models for different values of λ, and evaluate the root mean squared error on the validation set. We will try to find optimal value for λ.
+
+```{r}
+
+# Lambda grid
+lambda_grid <- seq(0, 10, by = 0.5)
+
+# Initialize RMSE results
+rmse_results <- data.frame(lambda = lambda_grid, RMSE = NA)
+
+# Helper: build design matrix aligned with model coefficients
+build_matrix <- function(model, newdata) {
+  # Use the training data from the model
+  train_data <- eval(model$call$data)
+  
+  # Build training design matrix to get correct column names
+  X_train <- model.matrix(model$formula, data = train_data)
+  coef_names <- colnames(X_train)
+  
+  # Build new design matrix
+  X_new <- model.matrix(model$formula, data = newdata)
+  
+  # Add any missing columns as zeros
+  missing_cols <- setdiff(coef_names, colnames(X_new))
+  if (length(missing_cols) > 0) {
+    for (col in missing_cols) X_new <- cbind(X_new, setNames(data.frame(rep(0, nrow(X_new))), col))
+  }
+  
+  # Keep only the columns in the same order as training
+  X_new <- X_new[, coef_names, drop = FALSE]
+  
+  # Convert to numeric matrix
+  X_new <- as.matrix(sapply(as.data.frame(X_new), as.numeric))
+  
+  return(X_new)
+}
+
+# Train ridge models and compute RMSE
+for (i in seq_along(lambda_grid)) {
+  lambda <- lambda_grid[i]
+  ridge_model <- ridgereg(dep_delay ~ ., data = train_data, lambda = lambda)
+  
+  X_val <- build_matrix(ridge_model, validation_data)
+  preds <- as.vector(X_val %*% coef(ridge_model))
+  
+  rmse_results$RMSE[i] <- sqrt(mean((validation_data$dep_delay - preds)^2))
+}
+
+best_lambda <- rmse_results$lambda[which.min(rmse_results$RMSE)]
+cat("Best lambda value found:", best_lambda, "\n")
+```
+
+### Final Model Training and Test Evaluation
+
+Using the optimal lambda value, the ridge regression model is retrained on the combined training and validation datasets and then evaluated on the test set. The resulting test RMSE is reported..
+
+```{r}
+train_val_data <- rbind(train_data, validation_data)
+final_model <- ridgereg(dep_delay ~ ., data = train_val_data, lambda = best_lambda)
+
+X_test <- build_matrix(final_model, test_data)
+test_preds <- as.vector(X_test %*% coef(final_model))
+
+test_rmse <- sqrt(mean((test_data$dep_delay - test_preds)^2))
+cat("Test RMSE with Optimal Lambda:", round(test_rmse, 2), "\n")
+```
