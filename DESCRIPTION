@@ -19,18 +19,19 @@ Description: Classes for performing Linear Regression and Ridge Regression
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Imports: 
+Imports:
+    methods,
     ggplot2, 
     gridExtra,
-    MASS
+    nycflights13,
+    dplyr
 Suggests: 
     knitr,
     rmarkdown,
     testthat (>= 3.0.0), 
-    nycflights13,
-    dplyr,
     tidyr,
-    caret
+    caret,
+    MASS
 Config/testthat/edition: 3
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr

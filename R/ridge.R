@@ -9,8 +9,9 @@
 #' @param lambda numeric A non-negative regularization parameter
 #'
 #' @returns ridgereg object containing the results.
+#' @importFrom methods new
+#' @importFrom stats model.frame model.matrix model.response terms delete.response
 #' @export
-#' @import MASS
 #'
 #' @examples
 #' data(iris)
