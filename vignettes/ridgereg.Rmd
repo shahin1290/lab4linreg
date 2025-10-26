@@ -1,0 +1,154 @@
+---
+title: "ridgereg"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ridgereg}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(lab4linreg)
+library(mlbench) # BostonHousing data
+library(caret)
+library(dplyr)
+```
+
+## Introduction
+This vignette demonstrates using ridgereg() to perform ridge regression on the BostonHousing dataset. We'll also fit standard linear regression and forward selection models for comparison. The goal is to predict the median value of homes (medv) using the other predictors.
+
+
+## Data Loading and Preparation
+
+```{r}
+# Load the BostonHousing dataset
+data("BostonHousing")
+df <- BostonHousing
+
+# Quick overview
+head(df)
+
+# Split data into 80% training and 20% testing
+set.seed(123)
+train_index <- createDataPartition(df$medv, p = 0.8, list = FALSE)
+train_data <- df[train_index, ]
+test_data <- df[-train_index, ]
+
+cat("Training set:", nrow(train_data), "rows\n")
+cat("Test set:", nrow(test_data), "rows\n")
+```
+
+## Linear Regression Models
+
+### 1. Standard Linear Regression
+
+```{r}
+# Standard linear regression model
+lm_model <- lm(medv ~ ., data = train_data)
+summary(lm_model)
+```
+
+### 2. Forward Selection
+
+```{r}
+# Intercept-only model
+lm_null <- lm(medv ~ 1, data = train_data)
+
+# Full model
+lm_full <- lm(medv ~ ., data = train_data)
+
+#Forward selection
+lm_forward <- step(lm_null, scope = list(lower = lm_null, upper = lm_full), direction = "forward", trace = 0)
+summary(lm_forward)
+```
+
+## Evaluate training RMSE:
+
+```{r}
+train_pred_lm <- predict(lm_model, newdata = train_data)
+train_pred_forward <- predict(lm_forward, newdata = train_data)
+
+train_rmse_lm <- sqrt(mean((train_data$medv - train_pred_lm)^2))
+train_rmse_forward <- sqrt(mean((train_data$medv - train_pred_forward)^2))
+
+cat("Training RMSE - Linear Regression:", round(train_rmse_lm,2), "\n")
+cat("Training RMSE - Forward Selection:", round(train_rmse_forward,2), "\n")
+```
+
+## Ridge Regression with ridgereg()
+
+```{r}
+# helper function
+build_matrix <- function(model, newdata) {
+  X_train <- model.matrix(model$formula, model.frame(model$formula, data =     eval(model$call$data)))
+coef_names <- colnames(X_train)
+
+X_new <- model.matrix(model$formula, newdata)
+
+  missing_cols <- setdiff(coef_names, colnames(X_new))
+    if(length(missing_cols) > 0){
+      for(col in missing_cols) X_new <- cbind(X_new, setNames(data.frame(rep(0, nrow(X_new))), col))
+    
+  }
+  X_new <- X_new[, coef_names, drop = FALSE]
+  as.matrix(sapply(as.data.frame(X_new), as.numeric))
+}
+```
+
+## Train ridge models with different λ
+
+```{r}
+lambda_grid <- seq(0, 10, by = 0.5)
+rmse_results <- data.frame(lambda = lambda_grid, RMSE = NA)
+
+for(i in seq_along(lambda_grid)){
+lambda <- lambda_grid[i]
+ridge_model <- ridgereg(medv ~ ., data = train_data, lambda = lambda)
+X_train <- build_matrix(ridge_model, train_data)
+preds <- as.vector(X_train %*% coef(ridge_model))
+
+rmse_results$RMSE[i] <- sqrt(mean((train_data$medv - preds)^2))
+}
+
+best_lambda <- rmse_results$lambda[which.min(rmse_results$RMSE)]
+cat("Optimal lambda for ridge regression:", best_lambda, "\n")
+
+```
+
+## Final Ridge Model and Test Evaluation
+
+```{r}
+final_ridge <- ridgereg(medv ~ ., data = train_data, lambda = best_lambda)
+
+X_test <- build_matrix(final_ridge, test_data)
+ridge_preds <- as.vector(X_test %*% coef(final_ridge))
+
+ridge_rmse <- sqrt(mean((test_data$medv - ridge_preds)^2))
+cat("Test RMSE - Ridge Regression:", round(ridge_rmse,2), "\n")
+```
+
+## Evaluation on Test Set
+
+```{r}
+lm_preds <- predict(lm_model, newdata = test_data)
+forward_preds <- predict(lm_forward, newdata = test_data)
+
+rmse_lm <- sqrt(mean((test_data$medv - lm_preds)^2))
+rmse_forward <- sqrt(mean((test_data$medv - forward_preds)^2))
+
+cat("Test RMSE - Linear Regression:", round(rmse_lm,2), "\n")
+cat("Test RMSE - Forward Selection:", round(rmse_forward,2), "\n")
+cat("Test RMSE - Ridge Regression:", round(ridge_rmse,2), "\n")
+```
+
+## Conclusion
+
+- Forward selection improves over standard linear regression in terms of RMSE.
+- Ridge regression with optimal λ reduces overfitting and may improve generalization on the test set.
